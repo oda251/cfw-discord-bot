@@ -1,31 +1,19 @@
-import { Hono } from 'hono'
-import { verifyKeyMiddleware } from './middleware'
-import {
-	InteractionResponseType,
-	InteractionType,
-} from 'discord-interactions'
-import {} from './commands.json'
+import { InteractionType, InteractionResponseType } from "discord-interactions";
+import { verifyDiscordInteraction } from "./middleware";
+import { Hono } from "hono";
 
-const app = new Hono()
-
-app.use(verifyKeyMiddleware())
-
-app.get('/', async (c) => {
-	const message = await c.req.json()
-	if (message.type === InteractionType.PING) {
-		return c.json({
-			type: InteractionResponseType.PONG
-		});
-	};
-	if (message.type === InteractionType.APPLICATION_COMMAND) {
+const app = new Hono();
+app.use('/', verifyDiscordInteraction);
+app.post('/', async (c) => {
+	const body = await c.req.json();
+	if (body.type === InteractionType.APPLICATION_COMMAND) {
 		return c.json({
 			type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 			data: {
-				content: 'Hello, World!'
-			}
+				content: "Hello, World!",
+			},
 		});
-	};
-	return c.json({error: 'Invalid interaction type'}, {status: 400});
+	}
 });
 
-export { app };
+export default app;

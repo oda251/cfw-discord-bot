@@ -1,20 +1,23 @@
-import { MiddlewareHandler, Env } from 'hono';
-import { verifyKey } from 'discord-interactions';
+import { InteractionResponseType, verifyKey } from "discord-interactions";
+import { createMiddleware } from "hono/factory";
+import { env } from "hono/adapter";
 
-const verifyKeyMiddleware =
-  (): MiddlewareHandler<{ Bindings: Env }> => async (c, next) => {
-    const signature = c.req.header('X-Signature-Ed25519');
-    const timestamp = c.req.header('X-Signature-Timestamp');
-    const body = await c.req.raw.clone().text();
-    const isValidRequest =
-      signature &&
-      timestamp &&
-      verifyKey(body, signature, timestamp, c.env.DISCORD_PUBLIC_KEY);
-    if (!isValidRequest) {
-      console.log('Invalid request signature');
-      return c.text('Bad request signature', 401);
-    }
-    return await next();
-  };
+export const verifyDiscordInteraction = createMiddleware(async (c, next) => {
+  const { DISCORD_PUBLIC_KEY } = env<{ DISCORD_PUBLIC_KEY: string }>(c);
+  const signature = c.req.header('X-Signature-Ed25519')!;
+  const timestamp = c.req.header('X-Signature-Timestamp')!;
+  const rawBody = await c.req.raw.clone().text();
+  const isValidRequest = verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
 
-export { verifyKeyMiddleware };
+  if (!isValidRequest) {
+    return c.json({ message: 'invalid request signature' }, 401);
+  }
+  const body = JSON.parse(rawBody);
+  if (c.req.method !== 'POST') {
+	return c.json({ message: 'invalid request method' }, 405);
+  }
+  if(body.type === InteractionResponseType.PONG) {
+    return c.json({ type: InteractionResponseType.PONG });
+  }
+  await next();
+});

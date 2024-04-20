@@ -1,8 +1,24 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-const ping = new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('pong!')
+export const shiftName = new SlashCommandBuilder()
+    .setName('shift-name')
+    .setDescription('あなたの直近のシフトを伝えます')
+	.addStringOption(option =>
+		option
+			.setName('intra-name')
+			.setDescription('イントラ名を教えてください')
+			.setRequired(true)
+	);
+
+export const shiftDate = new SlashCommandBuilder()
+	.setName('shift-date')
+	.setDescription('指定日のシフトを伝えます')
+	.addStringOption(option =>
+		option
+			.setName('date')
+			.setDescription('日付を教えてください format: YYYY/MM/DD')
+			.setRequired(true)
+	);
 
 //const hello = new SlashCommandBuilder()
 //     .setName('hello')
@@ -18,4 +34,4 @@ const ping = new SlashCommandBuilder()
 //             )
 //     );
 
-export const commands = [ping]
+export const commands = [shiftName, shiftDate];

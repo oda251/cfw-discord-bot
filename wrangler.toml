@@ -1,6 +1,9 @@
 name = "42-bot"
 compatibility_date = "2023-12-01"
 
+[triggers]
+crons = ["0 23 * * *"]
+
 # [vars]
 # MY_VAR = "my-variable"
 
